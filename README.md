@@ -417,7 +417,7 @@ GET /climalivre/v1/chuva/birigui
 
 #### 📤 Exemplo de Requisição:
 ```sh
-curl -X GET "http://localhost:8000/climalivre/v1/sol/birigui"
+curl -X GET "http://localhost:8000/climalivre/v1/chuva/birigui"
 ```
 
 #### 📥 Exemplo de Resposta:
@@ -425,6 +425,33 @@ curl -X GET "http://localhost:8000/climalivre/v1/sol/birigui"
 {
 	"locate": "Birigui São Paulo - BR",
 	"can_rain": "Pode haver chuva moderada nos próximos 3 dias! (Total: 12.9 mm)",
+	"about": "credits from https://open-meteo.com/"
+}
+```
+
+### 🔎 Comparação da Temperatura Média emtre o dia de hoje e o dia de ontem, busca por cidade
+Observação:  A cidade será passada diretamente na URL
+```http
+GET /climalivre/v1/comparar-temperatura/birigui
+```
+
+#### 📥 Parâmetros:
+| Parâmetro | Tipo   | Obrigatório | Default   | Descrição |<br>
+| `city`    | string | ❌ Não      | Brasilia  | Nome da cidade a ser consultada |<br>
+
+
+#### 📤 Exemplo de Requisição:
+```sh
+curl -X GET "http://localhost:8000/climalivre/v1/comparar-temperatura/birigui"
+```
+
+#### 📥 Exemplo de Resposta:
+```json
+{
+	"locate": "Brasília Federal District - BR",
+	"compare": "Ontem o dia foi mais quente que hoje",
+	"temperature_yesterday": "24°C",
+	"temperature_today": "23.6°C",
 	"about": "credits from https://open-meteo.com/"
 }
 ```
