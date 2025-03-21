@@ -349,11 +349,12 @@ curl -X GET "http://localhost:8000/climalivre/v1/ontem?city=birigui"
 ```http
 GET /climalivre/v1/temperature-conversion?temperature=50&option=fahrenheit_kelvin
 ```
+ # Observação: valores permitidos para o parametro option: 'celsius_fahrenheit', 'celsius_kelvin', 'fahrenheit_celsius', 'fahrenheit_kelvin', 'kelvin_celsius', 'kelvin_fahrenheit'
 
 #### 📥 Parâmetros:
 | Parâmetro     | Tipo   | Obrigatório | Default              | Descrição |<br>
 | `temperature` | float  | ✅ Sim      |  Não                | Valor da temperatura a ser convertida |<br>
-| `option`      | string | ❌ Não      |  Celsius_fahrenheit | Tipo de conversão, pode ser: 'celsius_fahrenheit', 'celsius_kelvin', 'fahrenheit_celsius', 'fahrenheit_kelvin', 'kelvin_celsius', 'kelvin_fahrenheit'
+| `option`      | string | ❌ Não      |  Celsius_fahrenheit | Opção de conversão do parametro `temperature`
  
 #### 📤 Exemplo de Requisição:
 ```sh
@@ -368,6 +369,62 @@ curl -X GET "http://localhost:8000/climalivre/v1/temperature-conversion?temperat
 		"temperature": "50°F",
 		"conversion": "283.15°K"
 	},
+	"about": "credits from https://open-meteo.com/"
+}
+```
+
+### 🔎 Informações sobre o nascer e o por do Sol na cidade pesquisada
+# Observação:  A cidade será passada diretamente na URL
+
+```http
+GET /climalivre/v1/sol/birigui
+```
+
+#### 📥 Parâmetros:
+| Parâmetro | Tipo   | Obrigatório | Default   | Descrição |<br>
+| `city`    | string | ❌ Não      | Brasilia  | Nome da cidade a ser consultada |<br>
+
+
+#### 📤 Exemplo de Requisição:
+```sh
+curl -X GET "http://localhost:8000/climalivre/v1/sol/birigui"
+```
+
+#### 📥 Exemplo de Resposta:
+```json
+{
+	"locate": "Birigui São Paulo - BR",
+	"results": [
+		{
+			"nascer_do_sol": "06:25",
+			"por_do_sol": "18:32"
+		}
+	],
+	"about": "credits from https://open-meteo.com/"
+}
+```
+
+### 🔎 Previsão de chuva nos proximos 3 dias por cidade pesquisada
+Observação:  A cidade será passada diretamente na URL
+```http
+GET /climalivre/v1/chuva/birigui
+```
+
+#### 📥 Parâmetros:
+| Parâmetro | Tipo   | Obrigatório | Default   | Descrição |<br>
+| `city`    | string | ❌ Não      | Brasilia  | Nome da cidade a ser consultada |<br>
+
+
+#### 📤 Exemplo de Requisição:
+```sh
+curl -X GET "http://localhost:8000/climalivre/v1/sol/birigui"
+```
+
+#### 📥 Exemplo de Resposta:
+```json
+{
+	"locate": "Birigui São Paulo - BR",
+	"can_rain": "Pode haver chuva moderada nos próximos 3 dias! (Total: 12.9 mm)",
 	"about": "credits from https://open-meteo.com/"
 }
 ```
