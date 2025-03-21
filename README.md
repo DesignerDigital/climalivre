@@ -54,6 +54,10 @@ curl -X GET "http://localhost:8000"
 
 ###  Buscar o clima local busca por IP
 Observação: Este endpoint não retorna resultados se executado em servidor local.
+
+porém você pode alterar o ClimaV1Controller.php:19  $response =  $this->client->requisition('http://ip-api.com/json/'.$request->ip(), [], false);
+substituindo $request->ip() pelo seu ip http://ip-api.com/json/{seu-ip}'
+
 ```http
 GET /clima-local
 ```
@@ -75,10 +79,15 @@ curl -X GET "http://localhost:8000/clima-local"
 ```http
 GET /climalivre/v1/hoje?city=birigui
 ```
+```http
+GET /climalivre/v1/hoje?lat=-20.0&lng=15.5
+```
 #### 📥 Parâmetros:
-| Parâmetro | Tipo   | Obrigatório | Default   | Descrição |
-|-----------|--------|-------------|-----------|
+| Parâmetro | Tipo   | Obrigatório | Default   | Descrição |<br>
+|-----------|--------|-------------|-----------|-----------|<br>
 | `city`    | string | ❌ Não      | Brasilia  | Nome da cidade a ser consultada |
+| `lat`     | string | ❌ Não      | null  | Nome da cidade a ser consultada |
+| `lng`     | string | ❌ Não      | null  | Nome da cidade a ser consultada |
 
 #### 📤 Exemplo de Requisição:
 ```sh
