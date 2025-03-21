@@ -448,10 +448,10 @@ curl -X GET "http://localhost:8000/climalivre/v1/comparar-temperatura/birigui"
 #### 📥 Exemplo de Resposta:
 ```json
 {
-	"locate": "Brasília Federal District - BR",
+	"locate": "Birigui São Paulo - BR",
 	"compare": "Ontem o dia foi mais quente que hoje",
-	"temperature_yesterday": "24°C",
-	"temperature_today": "23.6°C",
+	"temperature_yesterday": "25.75°C",
+	"temperature_today": "25.55°C",
 	"about": "credits from https://open-meteo.com/"
 }
 ```
