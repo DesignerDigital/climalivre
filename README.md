@@ -349,7 +349,7 @@ curl -X GET "http://localhost:8000/climalivre/v1/ontem?city=birigui"
 ```http
 GET /climalivre/v1/temperature-conversion?temperature=50&option=fahrenheit_kelvin
 ```
- # Observação: valores permitidos para o parametro option: 'celsius_fahrenheit', 'celsius_kelvin', 'fahrenheit_celsius', 'fahrenheit_kelvin', 'kelvin_celsius', 'kelvin_fahrenheit'
+ Observação: valores permitidos para o parametro option: 'celsius_fahrenheit', 'celsius_kelvin', 'fahrenheit_celsius', 'fahrenheit_kelvin', 'kelvin_celsius', 'kelvin_fahrenheit'
 
 #### 📥 Parâmetros:
 | Parâmetro     | Tipo   | Obrigatório | Default              | Descrição |<br>
@@ -374,7 +374,7 @@ curl -X GET "http://localhost:8000/climalivre/v1/temperature-conversion?temperat
 ```
 
 ### 🔎 Informações sobre o nascer e o por do Sol na cidade pesquisada
-# Observação:  A cidade será passada diretamente na URL
+Observação:  A cidade será passada diretamente na URL
 
 ```http
 GET /climalivre/v1/sol/birigui
