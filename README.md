@@ -113,8 +113,6 @@ curl -X GET "http://localhost:8000/climalivre/v1/hoje?lat=-20.0&lng=15.5"
 	"about": "credits from https://open-meteo.com/"
 }
 ```
-editando ------
-
 ### 🔎 Previsão do tempo para os próximos 7 dias
 ```http
 GET /climalivre/v1/semana?city=birigui
@@ -318,6 +316,58 @@ curl -X GET "http://localhost:8000/climalivre/v1/semana?city=birigui"
 			"soma_neve": "0cm"
 		}
 	],
+	"about": "credits from https://open-meteo.com/"
+}
+```
+
+### 🔎 Previsão do tempo de ontem
+```http
+GET /climalivre/v1/ontem?city=birigui
+```
+
+#### 📥 Parâmetros:
+| Parâmetro | Tipo   | Obrigatório | Default   | Descrição |<br>
+| `city`    | string | ❌ Não      | Brasilia  | Nome da cidade a ser consultada |<br>
+
+
+#### 📤 Exemplo de Requisição:
+```sh
+curl -X GET "http://localhost:8000/climalivre/v1/ontem?city=birigui"
+```
+
+#### 📥 Exemplo de Resposta:
+```json
+{
+	"locate": "Birigui São Paulo - BR",
+	"date": "2025-03-19",
+	"temperatura_media": "25.35°C",
+	"about": "credits from https://open-meteo.com/"
+}
+```
+
+### 🔎 Conversão de temperatura
+```http
+GET /climalivre/v1/temperature-conversion?temperature=50&option=fahrenheit_kelvin
+```
+
+#### 📥 Parâmetros:
+| Parâmetro     | Tipo   | Obrigatório | Default              | Descrição |<br>
+| `temperature` | float  | ✅ Sim      |  Não                | Valor da temperatura a ser convertida |<br>
+| `option`      | string | ❌ Não      |  Celsius_fahrenheit | Tipo de conversão, pode ser: 'celsius_fahrenheit', 'celsius_kelvin', 'fahrenheit_celsius', 'fahrenheit_kelvin', 'kelvin_celsius', 'kelvin_fahrenheit'
+ 
+#### 📤 Exemplo de Requisição:
+```sh
+curl -X GET "http://localhost:8000/climalivre/v1/temperature-conversion?temperature=50&option=Celsius_fahrenheit"
+```
+
+#### 📥 Exemplo de Resposta:
+```json
+{
+	"result": {
+		"option": "fahrenheit para kelvin",
+		"temperature": "50°F",
+		"conversion": "283.15°K"
+	},
 	"about": "credits from https://open-meteo.com/"
 }
 ```
