@@ -14,19 +14,20 @@ class ClimaV1Controller extends Controller{
         $this->client = $client;
     }
 
-    public function getClimaHere(Request $request)
+    public function getForecastHere(Request $request)
     {
         $response =  $this->client->requisition('http://ip-api.com/json/'.$request->ip(), [], false);
 
         $ip = $response->getBody();
 
-        if(empty($ip->lat) || empty($ip->lgn)){
+
+        if(empty($ip->lat) || empty($ip->lon)){
             return response()->json(['message' => 'não foi possivel encontrar a sua localização'],400);
         }
         try {
             $response = $this->client->requisition($this->urlSearchTime, [
                 'latitude' => $ip->lat,
-                'longitude' => $ip->lgn,
+                'longitude' => $ip->lon,
                 'current' => 'temperature_2m,relative_humidity_2m,rain,is_day,weather_code,cloud_cover,showers,snowfall',
                 'timezone' => 'America/Sao_Paulo',
                 'forecast_days' => 1

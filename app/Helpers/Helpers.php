@@ -215,7 +215,6 @@ if (!function_exists('can_it_rain')) {
 if(!function_exists('compareTemperature')){
     function compareTemperature(array $temperatures, string $units):object|null
     {
-     
         if(!is_array($temperatures) || count($temperatures) != 2){
             return null;
         }

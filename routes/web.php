@@ -20,7 +20,7 @@ $router->get('/', function () use ($router) {
 $router->group(['prefix'=>'/climalivre'], function() use($router){
     $router->group(['prefix' => '/v1'], function() use($router){
         /** obtem a mensagem do clima atual na localização de onde foi solicitada a requisição */
-        $router->get('/clima-local', 'ClimaV1Controller@getClimaHere');
+        $router->get('/clima-local', 'ClimaV1Controller@getForecastHere');
         /** obtem o clima atual baseado em pesquisa por cidade ou coordenadas */
         $router->get('/hoje', 'ClimaV1Controller@getNow');
         /** obtem o clima da semana baseado em pesquisa por cidade  */

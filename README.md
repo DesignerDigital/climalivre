@@ -1,6 +1,6 @@
 # 🌦️ API de Clima - Lumen
 
-Esta API fornece informações meteorológicas em tempo real utilizando a **Open-Meteo API** e a **OpenCage Geocoder** para geolocalização de cidades.
+Esta API fornece informações meteorológicas em tempo real utilizando a **Open-Meteo API** para geolocalização de cidades.
 
 ## 📌 Requisitos
 
@@ -15,22 +15,11 @@ Clone o repositório e instale as dependências:
 
 ```sh
 # Clonar o projeto
-git clone https://github.com/seu-usuario/seu-repositorio.git
-cd seu-repositorio
+git clone https://github.com/DesignerDigital/climalivre.git
+cd climalivre
 
 # Instalar dependências
 composer install
-
-# Criar arquivo .env
-cp .env.example .env
-```
-
-Edite o **.env** e adicione suas chaves de API:
-
-```env
-OPENCAGE_API_KEY=your-opencage-api-key
-OPENMETEO_URL=https://api.open-meteo.com/v1/forecast
-```
 
 ## 🔥 Como Usar
 
@@ -44,32 +33,72 @@ Agora, a API pode ser acessada via **http://localhost:8000/climalivre/v1**
 
 ## 🌍 Endpoints Disponíveis
 
-### 🔎 Buscar Clima Atual
+###  Testar a API
 ```http
-GET /climalivre/v1/hoje/{cidade}
+GET /
 ```
-#### 📥 Parâmetros:
-| Parâmetro  | Tipo   | Obrigatório | Descrição |
-|------------|--------|-------------|------------|
-| `cidade`   | string | ✅ Sim | Nome da cidade a ser consultada |
 
 #### 📤 Exemplo de Requisição:
 ```sh
-curl -X GET "http://localhost:8000/climalivre/v1/hoje/birigui"
+curl -X GET "http://localhost:8000"
 ```
 
 #### 📥 Exemplo de Resposta:
 ```json
 {
-  "cidade": "Birigui",
-  "latitude": -21.28861,
-  "longitude": -50.34,
-  "temperatura": 27.5,
-  "precipitacao": 0.2,
-  "cobertura_nuvens": 35,
-  "condicao_tempo": "Parcialmente nublado",
-  "is_day": true
+	"status": "ok",
+	"message": "Bem vindo ao Clima Livre a sua api do tempo.",
+	"about": "credits from https://open-meteo.com/"
 }
+```
+
+###  Buscar o clima local busca por IP
+Observação: Este endpoint não retorna resultados se executado em servidor local.
+```http
+GET /clima-local
+```
+
+#### 📤 Exemplo de Requisição:
+```sh
+curl -X GET "http://localhost:8000/clima-local"
+```
+
+#### 📥 Exemplo de Resposta:
+```json
+{
+	"message": "Hoje o céu está limpo ou com poucas nuvens em Birigui, com 23°C e umidade de 60%. Aproveite a noite!",
+	"about": "credits from https://open-meteo.com/"
+}
+```
+
+### 🔎 Buscar Clima Atual
+```http
+GET /climalivre/v1/hoje?city=birigui
+```
+#### 📥 Parâmetros:
+| Parâmetro | Tipo   | Obrigatório | Default   | Descrição |
+|-----------|--------|-------------|-----------|
+| `city`    | string | ❌ Não      | Brasilia  | Nome da cidade a ser consultada |
+
+#### 📤 Exemplo de Requisição:
+```sh
+curl -X GET "http://localhost:8000/climalivre/v1/hoje?city=birigui"
+```
+
+#### 📥 Exemplo de Resposta:
+```json
+{
+	"locate": "Birigui São Paulo - BR",
+	"clima": {
+		"temperature_2m": "22.8°C",
+		"relative_humidity_2m": "60%",
+		"is_day": false,
+		"description": "Céu limpo",
+		"weather_code": 0,
+		"icon": "☀️",
+		"cloud_cover": "o céu está limpo ou com poucas nuvens"
+	},
+	"about": "credits from https://open-meteo.com/"
 ```
 
 ### 🌎 Buscar Clima para Qualquer Localização
