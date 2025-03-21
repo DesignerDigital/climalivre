@@ -82,12 +82,13 @@ GET /climalivre/v1/hoje?city=birigui
 ```http
 GET /climalivre/v1/hoje?lat=-20.0&lng=15.5
 ```
+Observações: Enviando  a cidade, lat e lng, será priorizado a busca pela cidade, é necessário enviar valor da lat e lng para que a busca por coordenadas seja retornada com exito, caso falte um dos dois parametros a busca sera confirmada pela cidade padrão ou seja 'Brasilia'
+  
 #### 📥 Parâmetros:
 | Parâmetro | Tipo   | Obrigatório | Default   | Descrição |<br>
-|-----------|--------|-------------|-----------|-----------|<br>
-| `city`    | string | ❌ Não      | Brasilia  | Nome da cidade a ser consultada |
-| `lat`     | string | ❌ Não      | null  | Nome da cidade a ser consultada |
-| `lng`     | string | ❌ Não      | null  | Nome da cidade a ser consultada |
+| `city`    | string | ❌ Não      | Brasilia  | Nome da cidade a ser consultada |<br>
+| `lat`     | string | ❌ Não      | null  | Latitude a ser consultada |<br>
+| `lng`     | string | ❌ Não      | null  | Longitude a ser consultada |<br>
 
 #### 📤 Exemplo de Requisição:
 ```sh
