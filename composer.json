@@ -3,7 +3,7 @@
     "description": "Clima Livre a sua API do tempo.",
     "keywords": ["framework", "laravel", "lumen","forecast","time","sun","rain"],
     "license": "MIT",
-    "type": "project",
+    "type": "livrary",
     "require": {
         "php": "^8.1",
         "guzzlehttp/guzzle": "^7.9",
