@@ -1,67 +1,111 @@
-<?php 
+<?php
 
-namespace App\Http\Controllers;
+namespace Climalivre;
 
 use Carbon\Carbon;
-use Illuminate\Http\Request;
+use GuzzleHttp\Client;
 
-class ClimaV1Controller extends Controller{
-    protected $client;
-    private $patternCity = 'Brasília';
+class Clima extends Controller
+{
+    private string $patternCity = 'Brasília';
+    private GuzzleConntroller $client;
+    private Carbon $carbon;
 
-    public function __construct(GuzzleConntroller $client)
+    public function __construct()
     {
-        $this->client = $client;
+        $this->client = new GuzzleConntroller();
+        $this->carbon = new Carbon();
+    }
+    /**
+     * MÉTODO RESPONSÁVEL PELO TESTE DA API CLIMA LIVRE
+     * return JSON
+     */
+    public function test(){
+        return json_encode([
+            'status_code' => 200,
+            'message' =>  'Bem vindo ao Clima Livre a sua api do tempo.',
+            'about' => 'credits from https://open-meteo.com/'
+        ]);
     }
 
-    public function getForecastHere(Request $request)
+    public function getForecastHere(?string $ip = null)
     {
-        $response =  $this->client->requisition('http://ip-api.com/json/'.$request->ip(), [], false);
+        if($_SERVER["HTTP_HOST"] == 'localhost'){
+            if(!$ip){
+                return json_encode([
+                    'status_code' => 401,
+                    'message' =>  'Error: Parameter required \'id\' not sended',
+                    'about' => 'credits from https://open-meteo.com/'
+                ]);
+            }
+        }else{
+            $ip = $_SERVER["REMOTE_ADDR"];
+            return $ip;
+        }
 
-        $ip = $response->getBody();
+        $response =  $this->client->requisition('http://ip-api.com/json/' . $ip, [], false);
 
+        $result = $response->getBody();
+       
 
-        if(empty($ip->lat) || empty($ip->lon)){
-            return response()->json(['message' => 'não foi possivel encontrar a sua localização'],400);
+        if (empty($result->lat) || empty($result->lon)) {
+            return  json_encode([
+                'status_code' => 400,
+                'message' =>  'não foi possivel encontrar a sua localização',
+                'about' => 'credits from https://open-meteo.com/'
+            ]);
         }
         try {
             $response = $this->client->requisition($this->urlSearchTime, [
-                'latitude' => $ip->lat,
-                'longitude' => $ip->lon,
+                'latitude' => $result->lat,
+                'longitude' => $result->lon,
                 'current' => 'temperature_2m,relative_humidity_2m,rain,is_day,weather_code,cloud_cover,showers,snowfall',
                 'timezone' => 'America/Sao_Paulo',
                 'forecast_days' => 1
             ], false);
 
             $data = $response->getBody();
-            return response()->json(['message' => get_message(urldecode($ip->city), $data), 'about' => 'credits from https://open-meteo.com/']);
+
+
+            return  json_encode([
+                'status_code' => 200,
+                'message' =>  get_message(urldecode($result->city), $data),
+                'about' => 'credits from https://open-meteo.com/',
+            ]);
         } catch (\Exception $err) {
-            return response()->json(['message' => $err->getMessage()]);
+            return  json_encode([
+                'status_code' => 400,
+                'message' =>  $err->getMessage(),
+                'about' => 'credits from https://open-meteo.com/'
+            ]);
         }
     }
-    
-    public function getNow(Request $request){
-        $city = !empty($request->query('city')) ? urldecode($request->query('city')) : null;
-        $lat = !empty($request->query('lat')) ? $request->query('lat'): null;
-        $lng = !empty($request->query('lng')) ? $request->query('lng') : null;
 
-        if(!empty($city)){
+    public function getNow(?string $city=null, ?string $lat = null, ?string $lng = null )
+    {
+        $city = !empty($city) ? urldecode($city) : null;
+        $lat  = !empty($lat)  ? $lat : null;
+        $lng  = !empty($lng)  ? $lng : null;
+
+        if (!empty($city)) {
             $result = $this->getCoordinates($city);
-        }elseif(!empty($lat) && !empty($lng)){
+        } elseif (!empty($lat) && !empty($lng)) {
             $result = (object)[
                 'latitude' => $lat,
                 'longitude' => $lng
-            ]; 
-        }else{
+            ];
+        } else {
             $result = $this->getCoordinates(urldecode($this->getPatternCity()));
         }
-        if(empty($result) || empty($result->latitude) || empty($result->longitude)){
-            return response()->json([
-                'message' => 'Valores de latitude e longitude incorretos ou não enviados.'
+        if (empty($result) || empty($result->latitude) || empty($result->longitude)) {
+            return  json_encode([
+                'status_code' => 400,
+                'message' => 'Valores de latitude e longitude incorretos ou não enviados.',
+                'about' => 'credits from https://open-meteo.com/'
             ]);
         }
 
-        try{
+        try {
             $response = $this->client->requisition($this->urlSearchTime, [
                 'latitude' => $result->latitude,
                 'longitude' => $result->longitude,
@@ -72,28 +116,34 @@ class ClimaV1Controller extends Controller{
 
             $data = $response->getBody();
 
-            return response()->json(['locate' => $result->locate ??'Busca por coordenadas Lat: '.$data->latitude.' e Lng: '.$data->longitude, 'clima' => [
+            return  json_encode(['status_code'=>200, 'locate' => $result->locate ?? 'Busca por coordenadas Lat: ' . $data->latitude . ' e Lng: ' . $data->longitude, 'clima' => [
                 'temperature_2m'  => $data->current->temperature_2m . $data->current_units->temperature_2m,
                 'relative_humidity_2m' => $data->current->relative_humidity_2m . $data->current_units->relative_humidity_2m,
                 'is_day' => $data->current->is_day == true,
                 'description' => getWeatherDescription($data->current->weather_code),
                 'weather_code' => $data->current->weather_code,
-                'icon'=> getWeatherIcon($data->current->weather_code),
+                'icon' => getWeatherIcon($data->current->weather_code),
                 'cloud_cover' => cloud_cover($data->current->cloud_cover)
             ], 'about' => 'credits from https://open-meteo.com/']);
-        }catch(\Exception $err){
-            return response()->json(['message' => $err->getMessage()]);
+        } catch (\Exception $err) {
+            return  json_encode([
+                'status_code' => 400,
+                'message' =>   $err->getMessage(),
+                'about' => 'credits from https://open-meteo.com/'
+            ]);
         }
     }
 
-    public function getWeek(Request $request)
+    public function getWeek(?string $city = null)
     {
-        $city = !empty($request->query('city')) ? urldecode($request->query('city')) : 'Brasília';
+        $city = !empty($city) ? urldecode($city) : 'Brasília';
 
         $result = $this->getCoordinates($city);
         if (empty($result) || empty($result->latitude) || empty($result->longitude)) {
-            return response()->json([
-                'message' => 'Valores de latitude e longitude incorretos ou não enviados ou a cidade não pode ser localizada.'
+            return  json_encode([
+                'status_code' => 400,
+                'message' =>   'Valores de latitude e longitude incorretos ou não enviados ou a cidade não pode ser localizada.',
+                'about' => 'credits from https://open-meteo.com/'
             ]);
         }
 
@@ -107,9 +157,9 @@ class ClimaV1Controller extends Controller{
 
             $data = $response->getBody();
             $results = [];
-            $daily = $data->daily; 
+            $daily = $data->daily;
             $dailyUnits = $data->daily_units;
-            if(is_object($daily) && count(get_object_vars($daily)) > 0){
+            if (is_object($daily) && count(get_object_vars($daily)) > 0) {
                 $today = Carbon::today();
                 for ($i = 0; $i < 7; $i++) {
                     $date = Carbon::parse($daily->time[$i]);
@@ -144,33 +194,39 @@ class ClimaV1Controller extends Controller{
                     $today->addDay();
                 }
             }
-           
-            
-            return response()->json(['locate' => $result->locate, 'results' => $results,'about' => 'credits from https://open-meteo.com/']);
+
+
+            return json_encode(['status_code' => 200, 'locate' => $result->locate, 'results' => $results, 'about' => 'credits from https://open-meteo.com/']);
         } catch (\Exception $err) {
-            return response()->json(['message' => $err->getMessage()]);
+            return  json_encode([
+                'status_code' => 400,
+                'message' =>   $err->getMessage(),
+                'about' => 'credits from https://open-meteo.com/'
+            ]);
         }
     }
 
-    public function getYesterday(Request $request)
+    public function getYesterday(?string $city = null)
     {
-        $city = !empty($request->query('city')) ? urldecode($request->query('city')) : 'Brasília';
+        $city = !empty($city) ? urldecode($city) : 'Brasília';
 
         $result = $this->getCoordinates($city);
         if (empty($result) || empty($result->latitude) || empty($result->longitude)) {
-            return response()->json([
-                'message' => 'Valores de latitude e longitude incorretos ou não enviados ou a cidade não pode ser localizada.'
+            return  json_encode([
+                'status_code' => 400,
+                'message' =>   'Valores de latitude e longitude incorretos ou não enviados ou a cidade não pode ser localizada.',
+                'about' => 'credits from https://open-meteo.com/'
             ]);
         }
 
-        try{
+        try {
             $response = $this->client->requisition($this->urlSearchTime, [
                 'latitude' => $result->latitude,
                 'longitude' => $result->longitude,
                 'daily' => 'temperature_2m_max,temperature_2m_min',
                 'timezone' => 'America/Sao_Paulo',
-                'past_days' =>1 ,
-                'forecast_days'=>1
+                'past_days' => 1,
+                'forecast_days' => 1
             ], false);
 
             $data = $response->getBody();
@@ -179,24 +235,31 @@ class ClimaV1Controller extends Controller{
             $max = $data->daily->temperature_2m_max[0];
             $min = $data->daily->temperature_2m_min[0];
 
-            $averageTemperature = ($min + $max)/2;
+            $averageTemperature = ($min + $max) / 2;
 
-            return response()->json(['locate' => $result->locate,'date'=>$yesterday, 'temperatura_media' =>  $averageTemperature. $data->daily_units->temperature_2m_max, 'about' => 'credits from https://open-meteo.com/']);
+            return json_encode(['status_code' => 200, 'locate' => $result->locate, 'date' => $yesterday, 'temperatura_media' =>  $averageTemperature . $data->daily_units->temperature_2m_max, 'about' => 'credits from https://open-meteo.com/']);
         } catch (\Exception $err) {
-            return response()->json(['message' => $err->getMessage()]);
+            return  json_encode([
+                'status_code' => 400,
+                'message' =>   $err->getMessage(),
+                'about' => 'credits from https://open-meteo.com/'
+            ]);
         }
     }
 
-    public function temperatureConversion(Request $request)
+    public function temperatureConversion(float $temperature, ?string $option = null)
     {
-        $temperature = (float) $request->query('temperature');
-        $option = !empty($request->query('option'))? $request->query('option'): 'celsius_fahrenheit';
-        if(empty($temperature)){
-            return response()->json(['message' =>'A temperatura é um parametro obrigatório'],400);
+        $option = !empty($option) ? $option : 'celsius_fahrenheit';
+        if (empty($temperature)) {
+            return  json_encode([
+                'status_code' => 400,
+                'message' =>   'A temperatura é um parametro obrigatório',
+                'about' => 'credits from https://open-meteo.com/'
+            ]);
         }
         $result = conversion($temperature, $option);
-       
-        return response()->json(['result' => $result, 'about' => 'credits from https://open-meteo.com/']);
+
+        return json_encode(['status' => 200, 'result' => $result, 'about' => 'credits from https://open-meteo.com/']);
     }
 
     public function getSunInformation(?string $city = null)
@@ -205,8 +268,10 @@ class ClimaV1Controller extends Controller{
 
         $result = $this->getCoordinates($city);
         if (empty($result) || empty($result->latitude) || empty($result->longitude)) {
-            return response()->json([
-                'message' => 'Valores de latitude e longitude incorretos ou não enviados ou a cidade não pode ser localizada.'
+            return  json_encode([
+                'status_code' => 400,
+                'message' =>   'Valores de latitude e longitude incorretos ou não enviados ou a cidade não pode ser localizada.',
+                'about' => 'credits from https://open-meteo.com/'
             ]);
         }
 
@@ -220,25 +285,26 @@ class ClimaV1Controller extends Controller{
             ], false);
 
             $data = $response->getBody();
-       
+
             $daily = $data->daily;
-            $dailyUnits = $data->daily_units;
             if (is_object($daily) && count(get_object_vars($daily)) > 0) {
                 for ($i = 0; $i < 1; $i++) {
                     $dateSunrise = Carbon::parse($daily->sunrise[$i]);
                     $dateSunset = Carbon::parse($daily->sunset[$i]);
-                
+
                     $results[] = (object)[
                         'nascer_do_sol' => $dateSunrise->format('H:i'),
                         'por_do_sol' =>  $dateSunset->format('H:i'),
                     ];
                 }
             }
-
-
-            return response()->json(['locate' => $result->locate, 'results' => $results, 'about' => 'credits from https://open-meteo.com/']);
+            return json_encode(['status' => 200, 'locate' => $result->locate, 'results' => $results, 'about' => 'credits from https://open-meteo.com/']);
         } catch (\Exception $err) {
-            return response()->json(['message' => $err->getMessage()]);
+            return  json_encode([
+                'status_code' => 400,
+                'message' =>   $err->getMessage(),
+                'about' => 'credits from https://open-meteo.com/'
+            ]);
         }
     }
 
@@ -248,8 +314,10 @@ class ClimaV1Controller extends Controller{
 
         $result = $this->getCoordinates($city);
         if (empty($result) || empty($result->latitude) || empty($result->longitude)) {
-            return response()->json([
-                'message' => 'Valores de latitude e longitude incorretos ou não enviados ou a cidade não pode ser localizada.'
+            return  json_encode([
+                'status_code' => 400,
+                'message' =>   'Valores de latitude e longitude incorretos ou não enviados ou a cidade não pode ser localizada.',
+                'about' => 'credits from https://open-meteo.com/'
             ]);
         }
         try {
@@ -274,11 +342,15 @@ class ClimaV1Controller extends Controller{
             }
 
             $canRain = can_it_rain($rainSum);
-                // dd($rain);
+            // dd($rain);
 
-            return response()->json(['locate' => $result->locate, 'can_rain' => $canRain, 'about' => 'credits from https://open-meteo.com/']);
+            return json_encode(['status' => 200, 'locate' => $result->locate, 'can_rain' => $canRain, 'about' => 'credits from https://open-meteo.com/']);
         } catch (\Exception $err) {
-            return response()->json(['message' => $err->getMessage()]);
+            return  json_encode([
+                'status_code' => 400,
+                'message' =>   $err->getMessage(),
+                'about' => 'credits from https://open-meteo.com/'
+            ]);
         }
     }
 
@@ -287,8 +359,10 @@ class ClimaV1Controller extends Controller{
         $city = !empty($city) ? urldecode($city) : 'Brasília';
         $result = $this->getCoordinates($city);
         if (empty($result) || empty($result->latitude) || empty($result->longitude)) {
-            return response()->json([
-                'message' => 'Valores de latitude e longitude incorretos ou não enviados ou a cidade não pode ser localizada.'
+            return  json_encode([
+                'status_code' => 400,
+                'message' =>   'Valores de latitude e longitude incorretos ou não enviados ou a cidade não pode ser localizada.',
+                'about' => 'credits from https://open-meteo.com/'
             ]);
         }
 
@@ -304,27 +378,42 @@ class ClimaV1Controller extends Controller{
 
             $data = $response->getBody();
             $averageTemperature = [];
-          
-            for($i = 0; $i< 2;$i++){
-           
+
+            for ($i = 0; $i < 2; $i++) {
+
                 $max = $data->daily->temperature_2m_max[$i];
                 $min = $data->daily->temperature_2m_min[$i];
 
                 $averageTemperature[] = ($min + $max) / 2;
             }
-            
+
             $compare = compareTemperature($averageTemperature, $data->daily_units->temperature_2m_max);
-            if(!$compare){
-                return response()->json(['message' => 'Dados inválidos para fazer a comparação']);
+            if (!$compare) {
+                return  json_encode([
+                    'status_code' => 400,
+                    'message' =>  'Dados inválidos para fazer a comparação',
+                    'about' => 'credits from https://open-meteo.com/'
+                ]);
             }
-            return response()->json(['locate' => $result->locate, 'compare' => $compare->message, 'temperature_yesterday' => $compare->yesterday,
-                'temperature_today' => $compare->today, 'about' => 'credits from https://open-meteo.com/']);
+            return json_encode([
+                'status' => 200,
+                'locate' => $result->locate,
+                'compare' => $compare->message,
+                'temperature_yesterday' => $compare->yesterday,
+                'temperature_today' => $compare->today,
+                'about' => 'credits from https://open-meteo.com/'
+            ]);
         } catch (\Exception $err) {
-            return response()->json(['message' => $err->getMessage()]);
+            return  json_encode([
+                'status_code' => 400,
+                'message' =>   $err->getMessage(),
+                'about' => 'credits from https://open-meteo.com/'
+            ]);
         }
     }
 
-    private function getCoordinates(string $city): object
+
+    private function getCoordinates(string $city): object | string 
     {
         try {
             $responseLocate = $this->client->requisition($this->urlSearch, [
@@ -337,7 +426,11 @@ class ClimaV1Controller extends Controller{
             $dataLocate = $responseLocate->getBody();
 
             if (empty($dataLocate->results) || empty($dataLocate->results[0])) {
-                return response()->json(['message' => 'Cidade Não encontrada!']);
+                return  json_encode([
+                    'status_code' => 400,
+                    'message' =>  'Cidade Não encontrada!',
+                    'about' => 'credits from https://open-meteo.com/'
+                ]);
             }
 
             $dataLocate = $dataLocate->results[0];
@@ -349,13 +442,16 @@ class ClimaV1Controller extends Controller{
 
             return $result;
         } catch (\Exception $err) {
-            return response()->json(['message' => $err->getMessage()]);
+            return  json_encode([
+                'status_code' => 400,
+                'message' =>  $err->getMessage(),
+                'about' => 'credits from https://open-meteo.com/'
+            ]);
         }
     }
 
     public function getPatternCity()
     {
         return $this->patternCity;
-
     }
 }

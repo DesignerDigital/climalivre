@@ -1,6 +1,6 @@
-<?php 
+<?php
 
-namespace App\Http\Controllers;
+namespace Climalivre;
 
 use GuzzleHttp\Client;
 

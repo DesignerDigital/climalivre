@@ -110,6 +110,7 @@ if (!function_exists('get_week_en_to_br')) {
 if(!function_exists('formatSecondsInHours')){
     function formatSecondsInHours($seconds)
     {
+        $seconds = (int) $seconds;
         $hours = floor($seconds / 3600);
         $minutes = floor(($seconds % 3600) / 60);
 
